@@ -98,7 +98,8 @@ class RDMDraftTableGenerator(
 
         draft["fork_version_id"] = forked_published.get("fork_version_id")
         # If the draft is published we want to "soft" delete it
-        if data.get("is_published"):
+        draft_is_published = draft.get("is_published")
+        if draft_is_published:
             draft["json"] = None
             draft["fork_version_id"] = None
 
@@ -119,7 +120,7 @@ class RDMDraftTableGenerator(
         # if there is a record in the state it means both recid and doi were already
         # processed in the records table generator, a duplicate would violate unique
         # constraints and cause the load to fail.
-        if not forked_published:
+        if not (forked_published or draft_is_published):
             # recid
             record_pid = draft["json"]["pid"]
             yield PersistentIdentifier(
