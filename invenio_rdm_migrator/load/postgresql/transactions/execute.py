@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from ....logging import FailedTxLogger, Logger
+from ....logging import FailedTxLogger
 from ...base import Load
 from .operations import OperationType
 
@@ -27,6 +27,15 @@ class PostgreSQLTx(Load):
         self.dry = dry
         self.raise_on_db_error = raise_on_db_error
         self._session = _session
+        self._tx_logger = None
+        super().__init__(**kwargs)
+
+    @property
+    def tx_logger(self):
+        """Failed transactions logger."""
+        if self._tx_logger is None:
+            self._tx_logger = FailedTxLogger.get_logger()
+        return self._tx_logger
 
     @property
     def session(self):
@@ -40,14 +49,11 @@ class PostgreSQLTx(Load):
 
     def _cleanup(self, db=False):
         """No cleanup."""
-        logger = Logger.get_logger()
-        logger.debug("PostgreSQLExecute does not implement _cleanup()")
+        self.logger.debug("PostgreSQLExecute does not implement _cleanup()")
         pass
 
     def _load(self, transactions):
         """Performs the operations of a group transaction."""
-        logger = Logger.get_logger()
-        failed_tx_logger = FailedTxLogger.get_logger()
         exec_kwargs = dict(execution_options={"synchronize_session": False})
 
         outer_trans = None
@@ -61,21 +67,21 @@ class PostgreSQLTx(Load):
                         for op in action.prepare(session=self.session):
                             if op.type == OperationType.INSERT:
                                 row = op.as_row_dict()
-                                logger.info(f"INSERT {op.model}: {row}")
+                                self.logger.info(f"INSERT {op.model}: {row}")
                                 self.session.execute(
                                     sa.insert(op.model),
                                     [row],
                                     **exec_kwargs,
                                 )
                             elif op.type == OperationType.DELETE:
-                                logger.info(f"DELETE {op.model}: {op.data}")
+                                self.logger.info(f"DELETE {op.model}: {op.data}")
                                 self.session.execute(
                                     sa.delete(op.model).where(*op.pk_clauses),
                                     **exec_kwargs,
                                 )
                             elif op.type == OperationType.UPDATE:
                                 row = op.as_row_dict()
-                                logger.info(f"UDPATE {op.model}: {op.data}")
+                                self.logger.info(f"UDPATE {op.model}: {op.data}")
                                 self.session.execute(
                                     sa.update(op.model),
                                     [row],
@@ -84,11 +90,11 @@ class PostgreSQLTx(Load):
                             self.session.flush()
                         nested_trans.commit()
                     except Exception:
-                        logger.exception(
+                        self.logger.exception(
                             f"Could not load {action.data} ({action.name})",
                             exc_info=True,
                         )
-                        failed_tx_logger.exception(
+                        self.tx_logger.exception(
                             "Failed processing transaction",
                             extra={"tx": action.data},
                             exc_info=True,
@@ -97,8 +103,8 @@ class PostgreSQLTx(Load):
                         if self.raise_on_db_error:
                             raise
         except Exception:
-            logger.exception("Transactions load failed", exc_info=True)
-            failed_tx_logger.exception("Failed transaction", exc_info=True)
+            self.logger.exception("Transactions load failed", exc_info=True)
+            self.tx_logger.exception("Failed transaction", exc_info=True)
             if self.raise_on_db_error:
                 # NOTE: the "finally" block below will run before this "raise"
                 raise

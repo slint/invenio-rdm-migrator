@@ -10,9 +10,22 @@
 
 from abc import ABC, abstractmethod
 
+from ..logging import Logger
+
 
 class Load(ABC):
     """Base class for data loading."""
+
+    def __init__(self) -> None:
+        self._logger = None
+        super().__init__()
+
+    @property
+    def logger(self):
+        """Migration module logger."""
+        if self._logger is None:
+            self._logger = Logger.get_logger()
+        return self._logger
 
     def _prepare(self, *args, **kwargs):  # pragma: no cover
         """Prepare data for loading."""
