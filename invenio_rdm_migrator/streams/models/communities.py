@@ -11,6 +11,7 @@ from dataclasses import InitVar
 from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...load.postgresql.models import Model
@@ -36,8 +37,14 @@ class RDMParentCommunityMetadata(Model):
 
     __tablename__: InitVar[str] = "rdm_parents_community"
 
-    community_id: Mapped[UUID] = mapped_column(primary_key=True)
-    record_id: Mapped[UUID] = mapped_column(primary_key=True)
+    community_id: Mapped[UUID] = mapped_column(
+        ForeignKey("communities_metadata.id"),
+        primary_key=True,
+    )
+    record_id: Mapped[UUID] = mapped_column(
+        ForeignKey("rdm_parents_metadata.id"),
+        primary_key=True,
+    )
     request_id: Mapped[UUID]
 
 
@@ -54,7 +61,7 @@ class CommunityMember(Model):
     role: Mapped[str]
     visible: Mapped[bool]
     active: Mapped[bool]
-    community_id: Mapped[UUID]
+    community_id: Mapped[UUID] = mapped_column(ForeignKey("communities_metadata.id"))
     user_id: Mapped[int]
     group_id: Mapped[int] = mapped_column(nullable=True)
     request_id: Mapped[UUID] = mapped_column(nullable=True)
@@ -65,7 +72,7 @@ class FeaturedCommunity(Model):
 
     __tablename__: InitVar[str] = "communities_featured"
 
-    community_id: Mapped[UUID]
+    community_id: Mapped[UUID] = mapped_column(ForeignKey("communities_metadata.id"))
     id: Mapped[int] = mapped_column(primary_key=True)
     created: Mapped[datetime]
     updated: Mapped[datetime]
@@ -83,5 +90,5 @@ class CommunityFile(Model):
     json: Mapped[dict] = mapped_column(nullable=True)
     version_id: Mapped[int]
     key: Mapped[str]
-    record_id: Mapped[UUID]
+    record_id: Mapped[UUID] = mapped_column(ForeignKey("communities_metadata.id"))
     object_version_id: Mapped[UUID]

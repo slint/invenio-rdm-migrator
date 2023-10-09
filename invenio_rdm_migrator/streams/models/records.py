@@ -11,26 +11,10 @@ from dataclasses import InitVar
 from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ...load.postgresql.models import Model
-
-
-class RDMRecordMetadata(Model):
-    """RDM Record Metadata dataclass model."""
-
-    __tablename__: InitVar[str] = "rdm_records_metadata"
-
-    id: Mapped[UUID] = mapped_column(primary_key=True)
-    json: Mapped[dict] = mapped_column(nullable=True)
-    created: Mapped[datetime]
-    updated: Mapped[datetime]
-    version_id: Mapped[int]
-    index: Mapped[int]
-    bucket_id: Mapped[UUID]
-    parent_id: Mapped[UUID]
-    deletion_status: Mapped[str]
-    media_bucket_id: Mapped[UUID] = mapped_column(nullable=True, default=None)
 
 
 class RDMParentMetadata(Model):
@@ -45,14 +29,37 @@ class RDMParentMetadata(Model):
     version_id: Mapped[int]
 
 
+class RDMRecordMetadata(Model):
+    """RDM Record Metadata dataclass model."""
+
+    __tablename__: InitVar[str] = "rdm_records_metadata"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    json: Mapped[dict] = mapped_column(nullable=True)
+    created: Mapped[datetime]
+    updated: Mapped[datetime]
+    version_id: Mapped[int]
+    index: Mapped[int]
+    bucket_id: Mapped[UUID]
+    parent_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_parents_metadata.id"))
+    deletion_status: Mapped[str]
+    media_bucket_id: Mapped[UUID] = mapped_column(nullable=True, default=None)
+
+
 class RDMVersionState(Model):
     """RDM Version State dataclass model."""
 
     __tablename__: InitVar[str] = "rdm_versions_state"
 
-    parent_id: Mapped[UUID] = mapped_column(primary_key=True)
+    parent_id: Mapped[UUID] = mapped_column(
+        ForeignKey("rdm_parents_metadata.id"),
+        primary_key=True,
+    )
     latest_id: Mapped[UUID] = mapped_column(nullable=True)
-    next_draft_id: Mapped[UUID] = mapped_column(nullable=True)
+    next_draft_id: Mapped[UUID] = mapped_column(
+        ForeignKey("rdm_drafts_metadata.id"),
+        nullable=True,
+    )
     # latest_index has a programmatic default of 1 if the db value is None
     latest_index: Mapped[int] = mapped_column(nullable=True)
 
@@ -69,7 +76,7 @@ class RDMDraftMetadata(Model):
     version_id: Mapped[int]
     index: Mapped[int]
     bucket_id: Mapped[UUID]
-    parent_id: Mapped[UUID]
+    parent_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_parents_metadata.id"))
     expires_at: Mapped[datetime] = mapped_column(nullable=True, default=None)
     # in a new version this value is None
     fork_version_id: Mapped[int] = mapped_column(nullable=True, default=None)
@@ -87,7 +94,7 @@ class RDMRecordFile(Model):
     updated: Mapped[datetime]
     version_id: Mapped[int]
     key: Mapped[str]
-    record_id: Mapped[UUID]
+    record_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_records_metadata.id"))
     object_version_id: Mapped[UUID]
 
 
@@ -102,7 +109,7 @@ class RDMRecordMediaFile(Model):
     updated: Mapped[datetime]
     version_id: Mapped[int]
     key: Mapped[str]
-    record_id: Mapped[UUID]
+    record_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_records_metadata.id"))
     object_version_id: Mapped[UUID]
 
 
@@ -119,7 +126,7 @@ class RDMDraftFile(Model):
     updated: Mapped[datetime]
     version_id: Mapped[int]
     key: Mapped[str]
-    record_id: Mapped[UUID]
+    record_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_drafts_metadata.id"))
     object_version_id: Mapped[UUID] = mapped_column(nullable=True)
 
 
@@ -134,5 +141,5 @@ class RDMDraftMediaFile(Model):
     updated: Mapped[datetime]
     version_id: Mapped[int]
     key: Mapped[str]
-    record_id: Mapped[UUID]
+    record_id: Mapped[UUID] = mapped_column(ForeignKey("rdm_drafts_metadata.id"))
     object_version_id: Mapped[UUID] = mapped_column(nullable=True)
