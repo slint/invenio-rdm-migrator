@@ -59,7 +59,10 @@ class FailedTxLogger:
     @classmethod
     def initialize(cls, log_dir):
         """Constructor."""
-        formatter = jsonlogger.JsonFormatter(json_encoder=DataclassJSONEncoder)
+        formatter = jsonlogger.JsonFormatter(
+            "%(asctime)s %(created)s %(message)s",
+            json_encoder=DataclassJSONEncoder,
+        )
 
         logger = logging.getLogger(cls.name)
         fh = logging.FileHandler(log_dir / "failed-tx.log")
