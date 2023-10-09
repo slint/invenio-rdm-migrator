@@ -11,6 +11,44 @@ import pytest
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
+from invenio_rdm_migrator.streams.models.communities import (
+    Community,
+    CommunityFile,
+    CommunityMember,
+    FeaturedCommunity,
+    RDMParentCommunityMetadata,
+)
+from invenio_rdm_migrator.streams.models.files import (
+    FilesBucket,
+    FilesInstance,
+    FilesObjectVersion,
+)
+from invenio_rdm_migrator.streams.models.github import Release, Repository, WebhookEvent
+from invenio_rdm_migrator.streams.models.oai import OAISet
+from invenio_rdm_migrator.streams.models.oauth import (
+    RemoteAccount,
+    RemoteToken,
+    ServerClient,
+    ServerToken,
+)
+from invenio_rdm_migrator.streams.models.pids import PersistentIdentifier
+from invenio_rdm_migrator.streams.models.records import (
+    RDMDraftFile,
+    RDMDraftMediaFile,
+    RDMDraftMetadata,
+    RDMParentMetadata,
+    RDMRecordFile,
+    RDMRecordMediaFile,
+    RDMRecordMetadata,
+    RDMVersionState,
+)
+from invenio_rdm_migrator.streams.models.users import (
+    LoginInformation,
+    SessionActivity,
+    User,
+    UserIdentity,
+)
+
 
 @pytest.fixture(scope="session")
 def db_uri():
@@ -37,3 +75,56 @@ def session(engine):
     session.close()
     transaction.rollback()
     conn.close()
+
+
+@pytest.fixture(scope="session")
+def database(engine):
+    """Setup database.
+
+    Scope: module
+
+    Normally, tests should use the function-scoped :py:data:`db` fixture
+    instead. This fixture takes care of creating the database/tables and
+    removing the tables once tests are done.
+    """
+    tables = [
+        FilesBucket,
+        FilesInstance,
+        FilesObjectVersion,
+        ServerClient,
+        ServerToken,
+        User,
+        UserIdentity,
+        SessionActivity,
+        LoginInformation,
+        RemoteAccount,
+        RemoteToken,
+        RDMParentMetadata,
+        Community,
+        CommunityFile,
+        CommunityMember,
+        FeaturedCommunity,
+        OAISet,
+        PersistentIdentifier,
+        RDMDraftMetadata,
+        RDMRecordMetadata,
+        RDMRecordFile,
+        RDMRecordMediaFile,
+        RDMDraftFile,
+        RDMDraftMediaFile,
+        RDMVersionState,
+        RDMParentCommunityMetadata,
+        WebhookEvent,
+        Repository,
+        Release,
+    ]
+
+    # create tables
+    for model in tables:
+        model.__table__.create(bind=engine, checkfirst=True)
+
+    yield
+
+    # remove tables
+    for model in reversed(tables):
+        model.__table__.drop(engine)
