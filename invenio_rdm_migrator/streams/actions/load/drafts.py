@@ -523,8 +523,9 @@ class DraftPublishNewAction(LoadAction):
         draft = self.data.draft
         record = self.data.record
         parent = self.data.parent
+
         #
-        # Files rows
+        # Buckets rows
         #
         draft_bucket = self.data.draft_bucket
         record_bucket = self.data.record_bucket
@@ -540,24 +541,6 @@ class DraftPublishNewAction(LoadAction):
                 "locked": True,
             },
         )
-
-        record_object_versions = self.data.record_object_versions
-        for record_ov in record_object_versions:
-            yield Operation(OperationType.INSERT, FilesObjectVersion, record_ov)
-            yield Operation(
-                OperationType.INSERT,
-                RDMRecordFile,
-                {
-                    "id": str(uuid4()),
-                    "created": record_ov["created"],
-                    "updated": record_ov["updated"],
-                    "json": {},
-                    "version_id": 1,
-                    "key": record_ov["key"],
-                    "record_id": record["id"],
-                    "object_version_id": record_ov["version_id"],
-                },
-            )
 
         #
         # PID rows
@@ -638,6 +621,28 @@ class DraftPublishNewAction(LoadAction):
                 deletion_status="P",
             ),
         )
+
+        #
+        # Files rows
+        #
+        record_object_versions = self.data.record_object_versions
+        for record_ov in record_object_versions:
+            yield Operation(OperationType.INSERT, FilesObjectVersion, record_ov)
+            yield Operation(
+                OperationType.INSERT,
+                RDMRecordFile,
+                {
+                    "id": str(uuid4()),
+                    "created": record_ov["created"],
+                    "updated": record_ov["updated"],
+                    "json": {},
+                    "version_id": 1,
+                    "key": record_ov["key"],
+                    "record_id": record["id"],
+                    "object_version_id": record_ov["version_id"],
+                },
+            )
+
         # Update parent
         yield Operation(
             OperationType.UPDATE,
