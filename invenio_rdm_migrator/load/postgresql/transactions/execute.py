@@ -7,6 +7,10 @@
 
 """PostgreSQL Execute load."""
 
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Optional
+
 import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -14,6 +18,46 @@ from sqlalchemy.orm import Session
 from ....logging import FailedTxLogger
 from ...base import Load
 from .operations import OperationType
+
+
+@dataclass
+class LoadStats:
+    """Loading statistics."""
+
+    start: Optional[datetime] = None
+    tx: int = 0
+    ops: int = 0
+
+    @property
+    def duration(self) -> Optional[timedelta]:
+        """Total stats gathering duration."""
+        if self.start:
+            return datetime.utcnow() - self.start
+
+    @property
+    def tx_rate(self) -> float:
+        """Get transaction rate per minute."""
+        duration = self.duration
+        if duration:
+            return self.tx / (duration.total_seconds() / 60)
+        return 0
+
+    @property
+    def ops_rate(self) -> float:
+        """Get operations rate per minute."""
+        duration = self.duration
+        if duration:
+            return self.ops / (duration.total_seconds() / 60)
+        return 0
+
+    def __str__(self):
+        """Return loading stats rates, totals, and duration."""
+        return (
+            f"<LoadStats("
+            f"{self.tx_rate:.2f} tx/min ({self.tx}), "
+            f"{self.ops_rate:.2f} ops/min ({self.ops}), "
+            f"[{self.duration}])>"
+        )
 
 
 class PostgreSQLTx(Load):
@@ -28,6 +72,7 @@ class PostgreSQLTx(Load):
         self.raise_on_db_error = raise_on_db_error
         self._session = _session
         self._tx_logger = None
+        self._stats = LoadStats()
         super().__init__(**kwargs)
 
     @property
@@ -58,37 +103,46 @@ class PostgreSQLTx(Load):
 
         outer_trans = None
         if self.dry:
+            self.logger.warn("Running Tx loading in dry mode inside transaction!")
             outer_trans = self.session.begin()
         try:
+            self._stats.start = datetime.utcnow()
             for action in transactions:
+                tx = action.data.tx
+                self.logger.info(
+                    f"BEGIN | [{action.name}] from "
+                    f"Tx {tx and tx.id} (LSN: {tx and tx.commit_lsn})"
+                )
                 with self.session.no_autoflush:
                     nested_trans = self.session.begin_nested()
                     try:
                         for op in action.prepare(session=self.session):
                             if op.type == OperationType.INSERT:
                                 row = op.as_row_dict()
-                                self.logger.info(f"INSERT {op.model}: {row}")
+                                self.logger.debug(f"INSERT {op.model}: {row}")
                                 self.session.execute(
                                     sa.insert(op.model),
                                     [row],
                                     **exec_kwargs,
                                 )
                             elif op.type == OperationType.DELETE:
-                                self.logger.info(f"DELETE {op.model}: {op.data}")
+                                self.logger.debug(f"DELETE {op.model}: {op.data}")
                                 self.session.execute(
                                     sa.delete(op.model).where(*op.pk_clauses),
                                     **exec_kwargs,
                                 )
                             elif op.type == OperationType.UPDATE:
                                 row = op.as_row_dict()
-                                self.logger.info(f"UDPATE {op.model}: {op.data}")
+                                self.logger.debug(f"UPDATE {op.model}: {op.data}")
                                 self.session.execute(
                                     sa.update(op.model),
                                     [row],
                                     **exec_kwargs,
                                 )
                             self.session.flush()
+                            self._stats.ops += 1
                         nested_trans.commit()
+                        self._stats.tx += 1
                     except Exception:
                         self.logger.exception(
                             f"Could not load {action.data} ({action.name})",
@@ -96,12 +150,17 @@ class PostgreSQLTx(Load):
                         )
                         self.tx_logger.exception(
                             "Failed processing transaction",
-                            extra={"tx": action.data},
+                            extra={"tx": action.data.tx},
                             exc_info=True,
                         )
                         nested_trans.rollback()
                         if self.raise_on_db_error:
                             raise
+                self.logger.info(
+                    f"END  | [{action.name}] from "
+                    f"Tx {tx and tx.id} (LSN: {tx and tx.commit_lsn})"
+                )
+                self.logger.info(self._stats)
         except Exception:
             self.logger.exception("Transactions load failed", exc_info=True)
             self.tx_logger.exception("Failed transaction", exc_info=True)
