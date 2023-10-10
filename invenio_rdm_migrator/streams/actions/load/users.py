@@ -33,6 +33,7 @@ class UserRegistrationAction(LoadAction):
 
     name = "register-user"
     data_cls = UserData
+    data: UserData
 
     def _generate_rows(self, **kwargs):
         """Generates rows for a new user."""
@@ -56,6 +57,7 @@ class UserEditAction(LoadAction):
 
     name = "edit-user"
     data_cls = UserData
+    data: UserData
 
     def _generate_rows(self, **kwargs):
         """Generates rows for a user edit."""
@@ -69,16 +71,6 @@ class UserEditAction(LoadAction):
             )
 
 
-class UserProfileEditAction(LoadAction):
-    """Registers a user."""
-
-    name = "edit-user-profile"
-
-    def _generate_rows(self, **kwargs):
-        """Generates rows for a new draft."""
-        pass
-
-
 class UserDeactivationAction(LoadAction):
     """Deactivate a user.
 
@@ -87,6 +79,7 @@ class UserDeactivationAction(LoadAction):
 
     name = "deactivate-user"
     data_cls = UserData
+    data: UserData
 
     def _generate_rows(self, **kwargs):
         """Generates rows for a new draft."""
@@ -101,5 +94,6 @@ class UserDeactivationAction(LoadAction):
                 dict(user_id=self.data.user["id"], **self.data.login_information),
             )
 
-        for session in self.data.sessions:
-            yield Operation(OperationType.DELETE, SessionActivity, session)
+        if self.data.sessions:
+            for session in self.data.sessions:
+                yield Operation(OperationType.DELETE, SessionActivity, session)
