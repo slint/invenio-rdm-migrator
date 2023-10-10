@@ -25,6 +25,7 @@ from invenio_rdm_migrator.streams.models.records import (
     RDMDraftFile,
     RDMDraftMediaFile,
     RDMDraftMetadata,
+    RDMParentMetadata,
 )
 
 
@@ -36,6 +37,15 @@ def draft(
 ):
     """Draft with bucket."""
     session.add(FilesBucket(**bucket_data_w_size))
+    parent = RDMParentMetadata(
+        id=uuid4(),
+        json={},
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+        version_id=1,
+    )
+    session.add(parent)
+    session.commit()
     session.add(
         RDMDraftMetadata(
             id="5cbdc04b-b2ab-4d25-b21c-3ce6a5269710",
@@ -45,7 +55,7 @@ def draft(
             version_id=1,
             index=1,
             bucket_id=bucket_data_w_size["id"],
-            parent_id=uuid4(),
+            parent_id=parent.id,
             expires_at=None,
             fork_version_id=None,
             media_bucket_id=None,
