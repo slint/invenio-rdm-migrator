@@ -7,15 +7,11 @@
 
 """Ignored actions module."""
 
-from ....actions import LoadAction
+from ....actions import LoadAction, LoadData
 
 
-class AnyData:
+class AnyData(LoadData):
     """Utility class for accepting any combination of data arguments."""
-
-    def __init__(self, *args, **kwargs):
-        """Constructor."""
-        pass
 
 
 class IgnoredAction(LoadAction):
