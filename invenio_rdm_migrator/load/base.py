@@ -16,7 +16,7 @@ from ..logging import Logger
 class Load(ABC):
     """Base class for data loading."""
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         self._logger = None
         super().__init__()
 

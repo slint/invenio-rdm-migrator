@@ -64,7 +64,12 @@ class PostgreSQLTx(Load):
     """PostgreSQL COPY load."""
 
     def __init__(
-        self, db_uri, _session=None, dry=True, raise_on_db_error=False, **kwargs
+        self,
+        db_uri,
+        _session=None,
+        dry=True,
+        raise_on_db_error=False,
+        **kwargs,
     ):
         """Constructor."""
         self.db_uri = db_uri
