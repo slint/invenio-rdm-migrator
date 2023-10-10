@@ -13,14 +13,15 @@ the E T L instances a lightweight container that "calls" the corresponding metho
 an action. Being the latter the one implementing the logic.
 """
 
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar, Iterator, Optional
 
 import sqlalchemy.orm as orm
 
 from invenio_rdm_migrator.extract.transactions import Tx
 
+from ..load.postgresql.transactions.operations import Operation
 from ..logging import Logger
 from ..transform import DatetimeMixin
 from ..utils import dict_set
@@ -40,8 +41,6 @@ class Action:
 class LoadData:
     """Load action data."""
 
-    tx: Optional[Tx]
-
 
 class LoadAction(Action, ABC):
     """Load action.
@@ -49,16 +48,23 @@ class LoadAction(Action, ABC):
     This generates the corresponding SQL operations to perform.
     """
 
-    data_cls: ClassVar[type[LoadData]] = None
+    name: ClassVar[str]
+    data_cls: ClassVar[type[LoadData]]
     pks = []
 
-    def __init__(self, data: dict):
+    def __init__(
+        self,
+        data: dict,
+        tx=None,
+        transform_name: str = None,
+    ):
         """Constructor.
 
         :param pks: a triplet with the attribute, the key and the function.
         """
         assert data is not None
-        data.setdefault("tx", None)
+        self.tx = tx
+        self.transform_name = transform_name
         self.data = self.data_cls(**data)
         super().__init__()
 
@@ -80,7 +86,11 @@ class LoadAction(Action, ABC):
         pass
 
     @abstractmethod
-    def _generate_rows(self, session: orm.Session = None, **kwargs):
+    def _generate_rows(
+        self,
+        session: orm.Session = None,
+        **kwargs,
+    ) -> Iterator[Operation]:
         """Yield generated rows."""
 
     def prepare(self, session: orm.Session, **kwargs):
@@ -102,7 +112,8 @@ class TransformAction(Action, DatetimeMixin, ABC):
     into a target ``LoadAction``.
     """
 
-    load_cls: ClassVar[type[LoadAction]] = None
+    name: ClassVar[str]
+    load_cls: ClassVar[type[LoadAction]]
 
     def __init__(self, tx: Tx):
         """Constructor."""
@@ -114,13 +125,17 @@ class TransformAction(Action, DatetimeMixin, ABC):
         """Transforms an action."""
         transformed_data = self._transform_data()
         transformed_data.pop("tx_id", None)
-        transformed_data["tx"] = self.tx
-        return self.load_cls(transformed_data)
+        return self.load_cls(
+            transformed_data,
+            tx=self.tx,
+            transform_name=self.name,
+        )
 
-    @abstractclassmethod
-    def matches_action(cls, tx: Tx):  # pragma: no cover
+    @classmethod
+    @abstractmethod
+    def matches_action(cls, tx: Tx) -> bool:  # pragma: no cover
         """Checks if the data matches with that required by the action."""
 
     @abstractmethod
-    def _transform_data(self):  # pragma: no cover
+    def _transform_data(self) -> dict:  # pragma: no cover
         """Transforms the data and returns a dictionary."""

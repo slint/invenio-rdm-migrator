@@ -113,9 +113,9 @@ class PostgreSQLTx(Load):
         try:
             self._stats.start = datetime.utcnow()
             for action in transactions:
-                tx = action.data.tx
+                tx = action.tx
                 self.logger.info(
-                    f"BEGIN | [{action.name}] from "
+                    f"BEGIN | [{action.transform_name} -> {action.name}] from "
                     f"Tx {tx and tx.id} (LSN: {tx and tx.commit_lsn})"
                 )
                 with self.session.no_autoflush:
@@ -150,19 +150,25 @@ class PostgreSQLTx(Load):
                         self._stats.tx += 1
                     except Exception:
                         self.logger.exception(
-                            f"Could not load {action.data} ({action.name})",
+                            f"Could not load [{action.transform_name} -> {action.name}]"
+                            f"{action.data}",
                             exc_info=True,
                         )
                         self.tx_logger.exception(
                             "Failed processing transaction",
-                            extra={"tx": action.data.tx},
+                            extra={
+                                "tx": action.tx,
+                                "data": action.data,
+                                "transform": action.transform_name,
+                                "load": action.name,
+                            },
                             exc_info=True,
                         )
                         nested_trans.rollback()
                         if self.raise_on_db_error:
                             raise
                 self.logger.info(
-                    f"END  | [{action.name}] from "
+                    f"END   | [{action.transform_name} -> {action.name}] from "
                     f"Tx {tx and tx.id} (LSN: {tx and tx.commit_lsn})"
                 )
                 self.logger.info(self._stats)
