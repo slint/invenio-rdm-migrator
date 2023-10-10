@@ -13,6 +13,7 @@ from typing import Optional
 from uuid import uuid4
 
 import sqlalchemy as sa
+from sqlalchemy.orm import Session
 
 from ....actions import LoadAction, LoadData
 from ....load.postgresql.transactions.operations import Operation, OperationType
@@ -29,10 +30,8 @@ from ...models.records import (
 )
 
 
-def _get_community_id(session, slug):
-    return session.execute(
-        sa.select(Community.id).where(Community.slug == slug)
-    ).one_or_none()
+def _get_community_id(session: Session, slug):
+    return session.scalar(sa.select(Community.id).where(Community.slug == slug))
 
 
 def _set_permission_flags(session, parent, draft_or_record):
