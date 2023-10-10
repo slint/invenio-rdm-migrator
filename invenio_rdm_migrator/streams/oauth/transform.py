@@ -14,9 +14,9 @@ class OAuthServerScopesMapMixin:
     """OAuth server token data transformation."""
 
     SCOPES_MAPPING = {
-        "deposit:actions": None,
+        "deposit:actions": "deposit:actions",
         "deposit:extra_formats": None,
-        "deposit:write": None,
+        "deposit:write": "deposit:write",
         "generate": "tokens:generate",
         "user:email": "user:email",
         "webhooks:event": "webhooks:event",
