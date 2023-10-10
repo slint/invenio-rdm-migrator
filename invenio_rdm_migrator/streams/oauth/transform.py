@@ -7,6 +7,8 @@
 
 """Invenio RDM migration record transform interfaces."""
 
+import base64
+
 from ...transform import IdentityTransform
 
 
@@ -44,12 +46,19 @@ class OAuthServerScopesMapMixin:
 class OAuthServerTokenTransform(IdentityTransform, OAuthServerScopesMapMixin):
     """Transform OAuth server token."""
 
+    def __init__(self, base64_fields=None, **kwargs):
+        self.base64_fields = base64_fields or []
+        super().__init__(**kwargs)
+
     def _transform(self, entry):
         """Transform a single entry."""
         data = super()._transform(entry)
         scopes = data.get("_scopes")
         if scopes:
             data["_scopes"] = self.map_scopes(scopes)
+        for f in self.base64_fields:
+            if data.get(f):
+                data[f] = base64.b64decode(data[f])
         return data
 
 

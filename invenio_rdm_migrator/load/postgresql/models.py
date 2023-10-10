@@ -7,7 +7,7 @@
 
 """Invenio RDM migration PostgreSQL models module."""
 
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import BYTEA, JSONB
 from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass
 
 
@@ -16,4 +16,5 @@ class Model(MappedAsDataclass, DeclarativeBase):
 
     type_annotation_map = {
         dict: JSONB,
+        bytes: BYTEA,
     }

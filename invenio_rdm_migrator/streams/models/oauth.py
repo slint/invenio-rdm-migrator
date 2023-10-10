@@ -34,7 +34,7 @@ class RemoteToken(Model):
 
     id_remote_account: Mapped[int] = mapped_column(primary_key=True)
     token_type: Mapped[str] = mapped_column(primary_key=True)
-    access_token: Mapped[str]
+    access_token: Mapped[bytes]
     secret: Mapped[str]
     created: Mapped[datetime]
     updated: Mapped[datetime]
@@ -65,8 +65,8 @@ class ServerToken(Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     client_id: Mapped[str]
     user_id: Mapped[int] = mapped_column(nullable=True)
-    access_token: Mapped[str] = mapped_column(nullable=True)
-    refresh_token: Mapped[str] = mapped_column(nullable=True)
+    access_token: Mapped[bytes] = mapped_column(nullable=True)
+    refresh_token: Mapped[bytes] = mapped_column(nullable=True)
     expires: Mapped[datetime] = mapped_column(nullable=True)
     _scopes: Mapped[str] = mapped_column(nullable=True)
     token_type: Mapped[str] = mapped_column(nullable=True, default="bearer")
