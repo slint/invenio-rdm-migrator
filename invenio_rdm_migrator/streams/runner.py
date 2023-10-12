@@ -41,7 +41,7 @@ class Runner:
         self.log_dir = Path(config.get("log_dir"))
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
-        Logger.initialize(self.log_dir)
+        Logger.initialize(self.log_dir, level=config.get("log_level"))
         FailedTxLogger.initialize(self.log_dir)
 
         self.db_uri = config.get("db_uri")

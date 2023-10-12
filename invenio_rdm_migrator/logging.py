@@ -27,7 +27,7 @@ class Logger:
     """Migrator logger."""
 
     @classmethod
-    def initialize(cls, log_dir):
+    def initialize(cls, log_dir, level="INFO"):
         """Constructor."""
         formatter = logging.Formatter(
             fmt="%(asctime)s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
@@ -42,7 +42,10 @@ class Logger:
         # info to stream/stdout
         sh = logging.StreamHandler()
         sh.setFormatter(formatter)
-        sh.setLevel(logging.INFO)
+        if level == "DEBUG":
+            sh.setLevel(logging.DEBUG)
+        else:
+            sh.setLevel(logging.INFO)
         logger.addHandler(sh)
 
     @classmethod
