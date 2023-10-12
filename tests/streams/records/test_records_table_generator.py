@@ -121,6 +121,7 @@ def test_single_record_generate_rows(
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
             created="2023-01-01 12:00:00.00000",
             updated="2023-01-01 12:00:00.00000",
+            pid_provider="datacite",
         ),
         PersistentIdentifier(  # oai
             id=1_000_003,
@@ -131,6 +132,7 @@ def test_single_record_generate_rows(
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
             created="2023-01-01 12:00:00.00000",
             updated="2023-01-01 12:00:00.00000",
+            pid_provider="oai",
         ),
     ]
 
@@ -310,6 +312,7 @@ def test_record_versions_and_old_draft_generate_rows(
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823387",
             created="2023-01-01 12:00:00.00000",
             updated="2023-01-01 12:00:00.00000",
+            pid_provider="datacite",
         ),
         PersistentIdentifier(  # oai
             id=1_000_003,
@@ -320,6 +323,7 @@ def test_record_versions_and_old_draft_generate_rows(
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823387",
             created="2023-01-01 12:00:00.00000",
             updated="2023-01-01 12:00:00.00000",
+            pid_provider="oai",
         ),
     ]
 

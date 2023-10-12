@@ -146,4 +146,5 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
                 object_uuid=record["id"],
                 created=record["created"],
                 updated=record["updated"],
+                pid_provider=record["json"]["pids"]["doi"]["provider"],
             )

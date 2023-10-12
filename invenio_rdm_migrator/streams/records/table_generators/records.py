@@ -138,6 +138,7 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
                 object_uuid=record["id"],
                 created=record["created"],
                 updated=record["created"],
+                pid_provider=record["json"]["pids"]["doi"]["provider"],
             )
         # OAI
         if "oai" in record["json"]["pids"]:
@@ -150,6 +151,7 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
                 object_uuid=record["id"],
                 created=record["created"],
                 updated=record["created"],
+                pid_provider="oai",
             )
 
     def _resolve_references(self, data, **kwargs):
