@@ -154,6 +154,10 @@ class PostgreSQLTx(Load):
                         )
                         raise
                 nested_trans.commit()
+                self.logger.info(
+                    f"COMMIT| [{action.transform_name} -> {action.name}] from "
+                    f"Tx {tx and tx.id} (LSN: {tx and tx.commit_lsn})"
+                )
                 self._stats.tx += 1
             except Exception:
                 self.logger.exception(
