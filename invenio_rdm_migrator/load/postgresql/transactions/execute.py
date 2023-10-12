@@ -10,6 +10,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
+import orjson
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
@@ -18,6 +19,10 @@ from sqlalchemy.orm import Session
 from ....logging import FailedTxLogger
 from ...base import Load
 from .operations import OperationType
+
+
+def _json_serializer(val):
+    return orjson.dumps(val).decode("utf-8")
 
 
 @dataclass
@@ -91,7 +96,9 @@ class PostgreSQLTx(Load):
     def session(self):
         """DB session."""
         if self._session is None:
-            session_kwargs = dict(bind=create_engine(self.db_uri))
+            session_kwargs = {
+                "bind": create_engine(self.db_uri, json_serializer=_json_serializer)
+            }
             if self.dry:
                 session_kwargs["join_transaction_mode"] = "create_savepoint"
             self._session = Session(**session_kwargs)
