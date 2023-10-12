@@ -16,7 +16,6 @@ from ...models.records import RDMParentMetadata
 
 def generate_parent_ops(parent, parent_pid):
     """Generates operations for a parent record."""
-    now = datetime.utcnow().isoformat()
     # order is important when doing action/streaming migration
     # parent recid
     yield Operation(
@@ -29,8 +28,8 @@ def generate_parent_ops(parent, parent_pid):
             status=parent_pid["status"],
             object_type=parent_pid["object_type"],
             object_uuid=parent["id"],
-            created=now,
-            updated=now,
+            created=parent["created"],
+            updated=parent["created"],
         ),
     )
     # parent record

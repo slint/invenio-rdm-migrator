@@ -7,8 +7,6 @@
 
 """Invenio RDM migration parent table load module."""
 
-from datetime import datetime
-
 from invenio_rdm_migrator.load.ids import pid_pk
 
 from ...models.pids import PersistentIdentifier
@@ -17,7 +15,6 @@ from ...models.records import RDMParentMetadata
 
 def generate_parent_rows(parent):
     """Generates rows for a parent record."""
-    now = datetime.utcnow().isoformat()
     parent_pid = parent["json"]["pid"]
     # order is important when doing action/streaming migration
     # parent recid
@@ -28,8 +25,8 @@ def generate_parent_rows(parent):
         status=parent_pid["status"],
         object_type=parent_pid["obj_type"],
         object_uuid=parent["id"],
-        created=now,
-        updated=now,
+        created=parent["created"],
+        updated=parent["created"],
     )
     # parent DOI
     parent_doi = parent["json"].get("pids", {}).get("doi")
@@ -41,8 +38,9 @@ def generate_parent_rows(parent):
             status="R",
             object_type="rec",
             object_uuid=parent["id"],
-            created=now,
-            updated=now,
+            created=parent["created"],
+            updated=parent["updated"],
+            pid_provider="datacite",
         )
 
     # parent record

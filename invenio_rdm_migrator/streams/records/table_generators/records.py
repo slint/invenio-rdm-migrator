@@ -60,7 +60,6 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
 
     def _generate_rows(self, data, **kwargs):
         """Generates rows for a record."""
-        now = datetime.utcnow().isoformat()
         parent = data["parent"]
         record = data.get("record")
 
@@ -125,8 +124,8 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
             status=record_pid["status"],
             object_type=record_pid["obj_type"],
             object_uuid=record["id"],
-            created=now,
-            updated=now,
+            created=record["created"],
+            updated=record["created"],
         )
         # DOI
         if "doi" in record["json"]["pids"]:
@@ -137,8 +136,8 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
                 status="R",
                 object_type="rec",
                 object_uuid=record["id"],
-                created=now,
-                updated=now,
+                created=record["created"],
+                updated=record["created"],
             )
         # OAI
         if "oai" in record["json"]["pids"]:
@@ -149,8 +148,8 @@ class RDMRecordTableGenerator(TableGenerator, CommunitiesReferencesMixin):
                 status="R",
                 object_type="rec",
                 object_uuid=record["id"],
-                created=now,
-                updated=now,
+                created=record["created"],
+                updated=record["created"],
             )
 
     def _resolve_references(self, data, **kwargs):

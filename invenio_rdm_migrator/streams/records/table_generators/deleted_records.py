@@ -7,8 +7,6 @@
 
 """Invenio RDM migration deleted record load."""
 
-from datetime import datetime
-
 from ....load.ids import generate_recid, generate_uuid, pid_pk
 from ....load.postgresql.bulk.generators import TableGenerator
 from ....state import STATE
@@ -44,7 +42,6 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
 
     def _generate_rows(self, data, **kwargs):
         """Generates rows for a record."""
-        now = datetime.utcnow().isoformat()
         parent = data["parent"]
         record = data["record"]
 
@@ -70,8 +67,8 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
                     status=parent_pid["status"],
                     object_type=parent_pid["obj_type"],
                     object_uuid=parent["id"],
-                    created=now,
-                    updated=now,
+                    created=parent["created"],
+                    updated=parent["updated"],
                 )
             parent_doi = parent["json"].get("pids", {}).get("doi")
             if parent_doi and parent_doi["identifier"]:
@@ -82,8 +79,9 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
                     status="R",
                     object_type="rec",
                     object_uuid=parent["id"],
-                    created=now,
-                    updated=now,
+                    created=parent["created"],
+                    updated=parent["updated"],
+                    pid_provider="datacite",
                 )
 
             # parent record
@@ -134,8 +132,8 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
             status=record_pid["status"],
             object_type=record_pid["obj_type"],
             object_uuid=record["id"],
-            created=now,
-            updated=now,
+            created=record["created"],
+            updated=record["updated"],
         )
         # DOI
         if "doi" in record["json"].get("pids", {}):
@@ -146,6 +144,6 @@ class RDMDeletedRecordTableGenerator(TableGenerator):
                 status="R",
                 object_type="rec",
                 object_uuid=record["id"],
-                created=now,
-                updated=now,
+                created=record["created"],
+                updated=record["updated"],
             )

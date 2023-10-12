@@ -8,7 +8,6 @@
 """Records/Drafts table generator tests."""
 
 from copy import deepcopy
-from unittest.mock import patch
 
 from invenio_rdm_migrator.load.ids import pid_pk
 from invenio_rdm_migrator.streams.models.pids import PersistentIdentifier
@@ -27,30 +26,6 @@ from invenio_rdm_migrator.streams.records.load import (
 # pid_pk(). Therefore, some calls are made at the beginning of the tests.
 
 
-class MockUTCDate:
-    """Mock UTC date."""
-
-    def isoformat(self):
-        """ISO formatter datetime."""
-        return "2023-04-01 12:00:00.00000"
-
-
-class MockDateTime:
-    """Mock datetime class."""
-
-    def utcnow(self):
-        """Nop func."""
-        return MockUTCDate()
-
-
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.records.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.parents.datetime",
-    MockDateTime(),
-)
 def test_single_record_generate_rows(
     state, communities_state, parents_state, transformed_record_entry_pks
 ):
@@ -71,8 +46,8 @@ def test_single_record_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="12345678-abcd-1a2b-3c4d-123abc456def",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         RDMParentMetadata(  # parent record
             id="12345678-abcd-1a2b-3c4d-123abc456def",
@@ -134,8 +109,8 @@ def test_single_record_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         PersistentIdentifier(  # doi
             id=1_000_002,
@@ -144,8 +119,8 @@ def test_single_record_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         PersistentIdentifier(  # oai
             id=1_000_003,
@@ -154,8 +129,8 @@ def test_single_record_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
     ]
 
@@ -165,14 +140,6 @@ def test_single_record_generate_rows(
     assert len(list(state.RECORDS.all())) == 1
 
 
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.drafts.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.parents.datetime",
-    MockDateTime(),
-)
 def test_single_draft_generate_rows(
     state, communities_state, parents_state, transformed_draft_entry_pks
 ):
@@ -189,8 +156,8 @@ def test_single_draft_generate_rows(
             status="N",
             object_type="rec",
             object_uuid="12345678-abcd-1a2b-3c4d-123abc456def",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         RDMParentMetadata(  # parent record
             id="12345678-abcd-1a2b-3c4d-123abc456def",
@@ -248,8 +215,8 @@ def test_single_draft_generate_rows(
             status="N",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823386",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-31 12:00:00.00000",
         ),
     ]
 
@@ -259,18 +226,6 @@ def test_single_draft_generate_rows(
     assert len(list(state.RECORDS.all())) == 0
 
 
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.records.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.drafts.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.parents.datetime",
-    MockDateTime(),
-)
 def test_record_versions_and_old_draft_generate_rows(
     state,
     communities_state,
@@ -343,8 +298,8 @@ def test_record_versions_and_old_draft_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823387",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         PersistentIdentifier(  # doi
             id=1_000_002,
@@ -353,8 +308,8 @@ def test_record_versions_and_old_draft_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823387",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
         PersistentIdentifier(  # oai
             id=1_000_003,
@@ -363,8 +318,8 @@ def test_record_versions_and_old_draft_generate_rows(
             status="R",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823387",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-01 12:00:00.00000",
         ),
     ]
 
@@ -407,18 +362,6 @@ def test_record_versions_and_old_draft_generate_rows(
     assert len(list(state.RECORDS.all())) == 2  # two added records
 
 
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.records.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.drafts.datetime",
-    MockDateTime(),
-)
-@patch(
-    "invenio_rdm_migrator.streams.records.table_generators.parents.datetime",
-    MockDateTime(),
-)
 def test_record_and_new_version_draft_generate_rows(
     state,
     communities_state,
@@ -488,8 +431,8 @@ def test_record_and_new_version_draft_generate_rows(
             status="N",
             object_type="rec",
             object_uuid="2d6970ea-602d-4e8b-a918-063a59823389",
-            created="2023-04-01 12:00:00.00000",
-            updated="2023-04-01 12:00:00.00000",
+            created="2023-01-01 12:00:00.00000",
+            updated="2023-01-31 12:00:00.00000",
         ),
     ]
 

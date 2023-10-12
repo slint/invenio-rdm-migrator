@@ -59,7 +59,6 @@ class RDMDraftTableGenerator(
 
     def _generate_rows(self, data, **kwargs):
         """Generates rows for a record."""
-        now = datetime.utcnow().isoformat()
         parent = data["parent"]
         draft = data.get("draft")
         if not draft:
@@ -130,8 +129,8 @@ class RDMDraftTableGenerator(
                 status=record_pid["status"],
                 object_type=record_pid["obj_type"],
                 object_uuid=draft["id"],
-                created=now,
-                updated=now,
+                created=draft["created"],
+                updated=draft["updated"],
             )
         # we don't emit doi Persistentidentifier for drafts as either they have already
         # one from records or have an external doi that is registered on publish
