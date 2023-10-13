@@ -15,7 +15,7 @@ an action. Being the latter the one implementing the logic.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Iterator, Optional
+from typing import ClassVar, Iterator
 
 import sqlalchemy.orm as orm
 

@@ -10,8 +10,8 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
-import orjson
 
+import orjson
 import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
